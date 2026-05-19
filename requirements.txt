@@ -1,0 +1,7 @@
+fastf1>=3.8.1
+pandas>=2.3.0
+numpy>=2.4.0
+plotly>=6.6.0
+rich>=14.3.0
+matplotlib>=3.10.0
+requests>=2.32.0
