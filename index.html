@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 AI Predictor & Race Analytics Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- ── HEADER ────────────────────────────────────────── -->
+        <header class="app-header">
+            <div class="header-logo">
+                <span class="f1-badge">F1</span>
+                <div class="logo-text">
+                    <h1>AI PREDICTOR</h1>
+                    <p class="subtitle">& RACE ANALYTICS</p>
+                </div>
+            </div>
+            <div class="server-status">
+                <span class="status-indicator online"></span>
+                <span>AI MODEL ACTIVE (Random Forest v1.0)</span>
+            </div>
+        </header>
+
+        <!-- ── MAIN CONTENT GRID ──────────────────────────────── -->
+        <main class="dashboard-grid">
+            <!-- ── LEFT COLUMN: CONTROLS & GRID BUILDER ────── -->
+            <section class="control-panel">
+                <div class="card race-selector-card">
+                    <h2 class="card-title"><i class="fa-solid fa-flag-checkered icon-red"></i> Select Race & Season</h2>
+                    <div class="form-row">
+                        <div class="form-group select-season-group">
+                            <label for="season-select">Season</label>
+                            <select id="season-select" class="custom-select">
+                                <option value="2026" selected>2026</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                            </select>
+                        </div>
+                        <div class="form-group select-race-group">
+                            <label for="race-select">Choose a Round</label>
+                            <select id="race-select" class="custom-select">
+                                <option value="" disabled selected>Loading races...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="track-info" class="track-info-container hidden">
+                        <div class="track-header">
+                            <span id="track-flag" class="track-flag-emoji">🇧🇭</span>
+                            <div>
+                                <h3 id="track-name">Bahrain GP</h3>
+                                <p id="track-circuit">Bahrain International Circuit</p>
+                            </div>
+                        </div>
+                        <div class="track-metadata">
+                            <div class="meta-item">
+                                <span class="meta-label">Type</span>
+                                <span id="track-type" class="meta-value badge-street">balanced</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Laps</span>
+                                <span id="track-laps" class="meta-value">57 Laps</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card grid-editor-card">
+                    <div class="card-header-flex">
+                        <h2 class="card-title"><i class="fa-solid fa-list-ol icon-cyan"></i> Qualifying Grid</h2>
+                        <button id="reset-grid-btn" class="btn btn-secondary btn-sm" title="Reset to original qualifying order">
+                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        </button>
+                    </div>
+                    <p class="card-description">
+                        Rearrange the qualifying order below using the arrows to test how grid positions impact the AI's race win probability.
+                    </p>
+                    <div id="grid-loader" class="loader-container hidden">
+                        <div class="spinner"></div>
+                        <p>Loading grid data...</p>
+                    </div>
+                    <div id="drivers-list" class="drivers-list-container">
+                        <!-- Drivers injected here by JS -->
+                    </div>
+                    <button id="predict-btn" class="btn btn-primary btn-block btn-lg mt-4">
+                        <i class="fa-solid fa-bolt pulse-icon"></i> Run AI Simulation
+                    </button>
+                </div>
+            </section>
+
+            <!-- ── RIGHT COLUMN: RESULTS & PLOTLY CHARTS ───── -->
+            <section class="results-panel">
+                <!-- Top: AI Prediction Output -->
+                <div class="card prediction-results-card">
+                    <h2 class="card-title"><i class="fa-solid fa-brain icon-orange"></i> AI Simulation Results</h2>
+                    
+                    <div id="prediction-empty" class="empty-state">
+                        <i class="fa-solid fa-microchip empty-icon"></i>
+                        <h3>Simulation Ready</h3>
+                        <p>Set the starting grid and click "Run AI Simulation" to view expected podiums and driver probabilities.</p>
+                    </div>
+
+                    <div id="prediction-loading" class="loader-container hidden">
+                        <div class="spinner-dual"></div>
+                        <p>Running Random Forest Regressor simulations...</p>
+                        <span class="sub-text">Analyzing form, grid index, and car stats</span>
+                    </div>
+
+                    <div id="prediction-results-content" class="results-content hidden">
+                        <!-- 3D PODIUM -->
+                        <div class="podium-container">
+                            <!-- 2nd Place -->
+                            <div class="podium-step step-2" id="podium-2">
+                                <div class="podium-driver-info">
+                                    <span class="podium-driver-name" id="p2-name">SAI</span>
+                                    <span class="podium-driver-probability" id="p2-prob">14.8%</span>
+                                    <span class="podium-driver-team" id="p2-team">Ferrari</span>
+                                </div>
+                                <div class="podium-block">2</div>
+                            </div>
+                            <!-- 1st Place -->
+                            <div class="podium-step step-1" id="podium-1">
+                                <div class="podium-driver-info">
+                                    <div class="winner-crown"><i class="fa-solid fa-crown"></i></div>
+                                    <span class="podium-driver-name" id="p1-name">NOR</span>
+                                    <span class="podium-driver-probability" id="p1-prob">24.4%</span>
+                                    <span class="podium-driver-team" id="p1-team">McLaren</span>
+                                </div>
+                                <div class="podium-block">1</div>
+                            </div>
+                            <!-- 3rd Place -->
+                            <div class="podium-step step-3" id="podium-3">
+                                <div class="podium-driver-info">
+                                    <span class="podium-driver-name" id="p3-name">RUS</span>
+                                    <span class="podium-driver-probability" id="p3-prob">12.3%</span>
+                                    <span class="podium-driver-team" id="p3-team">Mercedes</span>
+                                </div>
+                                <div class="podium-block">3</div>
+                            </div>
+                        </div>
+
+                        <!-- Forecast Table -->
+                        <div class="forecast-table-container">
+                            <table class="forecast-table">
+                                <thead>
+                                    <tr>
+                                        <th class="col-rank">#</th>
+                                        <th>Driver</th>
+                                        <th>Start Grid</th>
+                                        <th class="col-center">Expected Finish</th>
+                                        <th class="col-right">Win Chance</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="forecast-table-body">
+                                    <!-- Rows injected by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom: Interactive Plotly Charts -->
+                <div class="card analytics-card">
+                    <div class="card-header-flex align-center">
+                        <h2 class="card-title"><i class="fa-solid fa-chart-line icon-purple"></i> Race Analytics & Telemetry</h2>
+                        <button id="generate-charts-btn" class="btn btn-secondary btn-sm" disabled>
+                            <i class="fa-solid fa-gears"></i> Load/Generate Charts
+                        </button>
+                    </div>
+
+                    <!-- Charts Status Bar -->
+                    <div id="charts-loading-banner" class="charts-status-banner hidden bg-warning">
+                        <div class="banner-content">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <span>Fetching FastF1 telemetry & creating Plotly charts (Takes ~30s for new races, instant otherwise)...</span>
+                        </div>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="tabs-container">
+                        <button class="tab-btn active" data-tab="race_dashboard">Dashboard</button>
+                        <button class="tab-btn" data-tab="lap_times">Lap Pace</button>
+                        <button class="tab-btn" data-tab="tyre_strategy">Strategy</button>
+                        <button class="tab-btn" data-tab="tyre_degradation">Tyre Deg</button>
+                        <button class="tab-btn" data-tab="team_pace">Team Pace</button>
+                        <button class="tab-btn" data-tab="position_changes">Position Changes</button>
+                    </div>
+
+                    <!-- IFrame content container -->
+                    <div class="iframe-wrapper">
+                        <div id="chart-placeholder" class="chart-placeholder-state">
+                            <i class="fa-solid fa-chart-bar placeholder-icon"></i>
+                            <h3>No Interactive Charts Loaded</h3>
+                            <p>Select a Grand Prix and click "Load/Generate Charts" above to build the telemetry maps and lap graphs.</p>
+                        </div>
+                        <iframe id="chart-iframe" class="chart-iframe hidden" src="" frameborder="0"></iframe>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>

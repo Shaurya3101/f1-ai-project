@@ -1,0 +1,880 @@
+/* styles.css */
+
+/* ── DESIGN SYSTEM VARIABLES ────────────────────────── */
+:root {
+    --bg-main: #09090e;
+    --bg-card: rgba(18, 18, 30, 0.7);
+    --bg-card-hover: rgba(26, 26, 44, 0.85);
+    --border-color: rgba(255, 255, 255, 0.06);
+    --border-color-active: rgba(255, 255, 255, 0.12);
+    
+    --text-primary: #f8f9fc;
+    --text-secondary: #8e92a8;
+    --text-muted: #5b5e70;
+    
+    --f1-red: #ff1801;
+    --f1-red-glow: rgba(255, 24, 1, 0.35);
+    --neon-cyan: #00f0ff;
+    --neon-orange: #ff7b00;
+    --neon-green: #39ff14;
+    --neon-purple: #bd00ff;
+    
+    --font-header: 'Space Grotesk', sans-serif;
+    --font-body: 'Outfit', sans-serif;
+
+    /* Official 2024 F1 Team Colors */
+    --color-red-bull: #3671C6;
+    --color-ferrari: #E8002D;
+    --color-mercedes: #27F4D2;
+    --color-mclaren: #FF8000;
+    --color-aston-martin: #229971;
+    --color-alpine: #FF87BC;
+    --color-williams: #64C4FF;
+    --color-rb: #6692FF;
+    --color-sauber: #52E252;
+    --color-haas: #B6BABD;
+    --color-unknown: #888888;
+}
+
+/* ── RESET & BASE STYLES ────────────────────────────── */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-main);
+    background-image: 
+        radial-gradient(at 10% 10%, rgba(225, 6, 0, 0.05) 0px, transparent 50%),
+        radial-gradient(at 90% 10%, rgba(0, 240, 255, 0.03) 0px, transparent 50%),
+        radial-gradient(at 50% 90%, rgba(189, 0, 255, 0.04) 0px, transparent 50%);
+    background-attachment: fixed;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-weight: 400;
+    line-height: 1.5;
+    padding-bottom: 40px;
+    overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-main);
+}
+::-webkit-scrollbar-thumb {
+    background: #252538;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #3a3a55;
+}
+
+.app-container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 20px 30px;
+}
+
+/* ── HEADER ────────────────────────────────────────── */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 20px;
+    margin-bottom: 25px;
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.f1-badge {
+    background-color: var(--f1-red);
+    color: white;
+    font-family: var(--font-header);
+    font-weight: 800;
+    font-size: 24px;
+    padding: 4px 12px;
+    border-radius: 4px;
+    letter-spacing: -1px;
+    box-shadow: 0 0 15px var(--f1-red-glow);
+}
+
+.logo-text h1 {
+    font-family: var(--font-header);
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: 0.5px;
+    line-height: 1.1;
+    background: linear-gradient(90deg, #fff 0%, #aaa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.logo-text .subtitle {
+    font-family: var(--font-header);
+    font-size: 11px;
+    color: var(--f1-red);
+    letter-spacing: 4px;
+    font-weight: 600;
+}
+
+.server-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-family: var(--font-header);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+.status-indicator.online {
+    background-color: var(--neon-green);
+    box-shadow: 0 0 8px var(--neon-green);
+}
+.status-indicator.offline {
+    background-color: var(--f1-red);
+    box-shadow: 0 0 8px var(--f1-red);
+}
+
+/* ── CARDS & REUSABLE LAYOUTS ──────────────────────── */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+    border-color: var(--border-color-active);
+}
+
+.card-title {
+    font-family: var(--font-header);
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-description {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+.card-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.card-header-flex .card-title {
+    margin-bottom: 0;
+}
+
+.icon-red { color: var(--f1-red); text-shadow: 0 0 10px rgba(255,24,1,0.2); }
+.icon-cyan { color: var(--neon-cyan); text-shadow: 0 0 10px rgba(0,240,255,0.2); }
+.icon-orange { color: var(--neon-orange); text-shadow: 0 0 10px rgba(255,123,0,0.2); }
+.icon-purple { color: var(--neon-purple); text-shadow: 0 0 10px rgba(189,0,255,0.2); }
+
+/* ── DASHBOARD GRID ────────────────────────────────── */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 25px;
+    align-items: start;
+}
+
+/* ── FORM ELEMENTS ─────────────────────────────────── */
+.form-group {
+    margin-bottom: 15px;
+}
+.form-group label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+.form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+.select-season-group {
+    flex: 0 0 105px;
+    margin-bottom: 0 !important;
+}
+.select-race-group {
+    flex: 1;
+    margin-bottom: 0 !important;
+}
+
+.custom-select {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border-color);
+    color: white;
+    padding: 12px 16px;
+    font-size: 14px;
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.custom-select:focus {
+    border-color: var(--f1-red);
+    box-shadow: 0 0 8px rgba(255, 24, 1, 0.15);
+}
+
+/* ── TRACK INFO ────────────────────────────────────── */
+.track-info-container {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 15px;
+    transition: opacity 0.3s ease;
+}
+
+.track-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.track-flag-emoji {
+    font-size: 28px;
+}
+.track-header h3 {
+    font-family: var(--font-header);
+    font-size: 16px;
+    font-weight: 600;
+}
+.track-header p {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.track-metadata {
+    display: flex;
+    gap: 15px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding-top: 10px;
+}
+.meta-item {
+    flex: 1;
+}
+.meta-label {
+    display: block;
+    font-size: 9px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+.meta-value {
+    font-size: 13px;
+    font-weight: 600;
+}
+.meta-value.badge-street { color: var(--neon-orange); }
+.meta-value.badge-high_speed { color: var(--neon-cyan); }
+.meta-value.badge-balanced { color: var(--neon-purple); }
+
+/* ── DRIVER GRID EDITOR ────────────────────────────── */
+.drivers-list-container {
+    max-height: 480px;
+    overflow-y: auto;
+    padding-right: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.driver-grid-item {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-left: 4px solid var(--color-unknown);
+    border-radius: 6px;
+    padding: 8px 12px;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+.driver-grid-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.grid-pos-badge {
+    width: 22px;
+    height: 22px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-right: 12px;
+}
+
+.driver-main-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.driver-abbrev-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+.driver-code {
+    font-family: var(--font-header);
+    font-weight: 700;
+    font-size: 15px;
+}
+.driver-fname {
+    font-size: 11px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+.driver-team-name {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.grid-controls {
+    display: flex;
+    gap: 4px;
+}
+.btn-arrow {
+    width: 26px;
+    height: 26px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: var(--text-secondary);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    transition: all 0.15s ease;
+}
+.btn-arrow:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+.btn-arrow:disabled {
+    opacity: 0.15;
+    cursor: not-allowed;
+}
+
+/* Team Borders Dynamic Classes (loaded via JS) */
+.team-red-bull { border-left-color: var(--color-red-bull); }
+.team-ferrari { border-left-color: var(--color-ferrari); }
+.team-mercedes { border-left-color: var(--color-mercedes); }
+.team-mclaren { border-left-color: var(--color-mclaren); }
+.team-aston-martin { border-left-color: var(--color-aston-martin); }
+.team-alpine { border-left-color: var(--color-alpine); }
+.team-williams { border-left-color: var(--color-williams); }
+.team-rb { border-left-color: var(--color-rb); }
+.team-kick-sauber { border-left-color: var(--color-sauber); }
+.team-haas { border-left-color: var(--color-haas); }
+
+/* ── BUTTONS ───────────────────────────────────────── */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--font-header);
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    font-size: 13px;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 11px;
+    border-radius: 6px;
+}
+.btn-lg {
+    padding: 14px 24px;
+    font-size: 15px;
+}
+.btn-block {
+    width: 100%;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--f1-red) 0%, #b30400 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 24, 1, 0.25);
+}
+.btn-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #ff3622 0%, var(--f1-red) 100%);
+    box-shadow: 0 6px 20px rgba(255, 24, 1, 0.4);
+    transform: translateY(-1px);
+}
+.btn-primary:active {
+    transform: translateY(1px);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+.btn-secondary:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255,255,255,0.15);
+}
+.btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+/* ── LOADERS ───────────────────────────────────────── */
+.loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+}
+.loader-container p {
+    font-size: 14px;
+    margin-top: 15px;
+    color: var(--text-secondary);
+}
+.loader-container .sub-text {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 5px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    border-top-color: var(--f1-red);
+    animation: spin 1s linear infinite;
+}
+
+.spinner-dual {
+    width: 45px;
+    height: 45px;
+    border: 3px solid transparent;
+    border-radius: 50%;
+    border-top-color: var(--neon-cyan);
+    border-bottom-color: var(--f1-red);
+    animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.pulse-icon {
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 0.7; }
+}
+
+/* ── EMPTY STATES ──────────────────────────────────── */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--text-muted);
+}
+.empty-icon {
+    font-size: 40px;
+    margin-bottom: 15px;
+    opacity: 0.4;
+}
+.empty-state h3 {
+    font-family: var(--font-header);
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+.empty-state p {
+    font-size: 12px;
+    max-width: 320px;
+    line-height: 1.4;
+}
+
+/* ── AI RESULTS PODIUM ──────────────────────────────── */
+.prediction-results-card {
+    min-height: 380px;
+}
+.podium-container {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    height: 180px;
+    margin-bottom: 25px;
+    margin-top: 15px;
+    gap: 8px;
+}
+
+.podium-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 140px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.podium-driver-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 8px;
+    width: 100%;
+}
+.podium-driver-name {
+    font-family: var(--font-header);
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 1.2;
+}
+.podium-driver-probability {
+    font-weight: 800;
+    font-size: 14px;
+    color: white;
+}
+.podium-driver-team {
+    font-size: 10px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 110px;
+}
+
+.podium-block {
+    width: 100%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-header);
+    font-weight: 700;
+    font-size: 28px;
+    color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Height values for podium blocks */
+.step-1 .podium-block { height: 100px; border-top: 3px solid var(--color-mclaren); }
+.step-2 .podium-block { height: 75px; border-top: 3px solid var(--color-ferrari); }
+.step-3 .podium-block { height: 55px; border-top: 3px solid var(--color-mercedes); }
+
+/* Winner crown style */
+.winner-crown {
+    color: #ffd700;
+    font-size: 14px;
+    margin-bottom: -2px;
+    animation: bounce 2s infinite;
+}
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+/* Neon Glows based on winning team */
+.step-1.glow-red-bull { filter: drop-shadow(0 0 10px rgba(54,113,198,0.25)); }
+.step-1.glow-ferrari { filter: drop-shadow(0 0 10px rgba(232,0,45,0.25)); }
+.step-1.glow-mercedes { filter: drop-shadow(0 0 10px rgba(39,244,210,0.25)); }
+.step-1.glow-mclaren { filter: drop-shadow(0 0 10px rgba(255,128,0,0.25)); }
+.step-1.glow-aston-martin { filter: drop-shadow(0 0 10px rgba(34,153,113,0.25)); }
+
+/* ── FORECAST TABLE ────────────────────────────────── */
+.forecast-table-container {
+    overflow-x: auto;
+    border-top: 1px solid var(--border-color);
+    padding-top: 15px;
+}
+
+.forecast-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+
+.forecast-table th {
+    font-family: var(--font-header);
+    color: var(--text-secondary);
+    font-weight: 600;
+    padding: 10px 12px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.forecast-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.forecast-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.01);
+}
+
+.col-rank { width: 45px; font-weight: 700; color: var(--text-muted); }
+.col-center { text-align: center; }
+.col-right { text-align: right; }
+
+.table-driver-cell {
+    display: flex;
+    flex-direction: column;
+}
+.table-driver-name {
+    font-weight: 600;
+}
+.table-driver-team {
+    font-size: 10px;
+    color: var(--text-secondary);
+}
+
+.grid-change-indicator {
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 5px;
+}
+.change-up { color: var(--neon-green); }
+.change-down { color: var(--f1-red); }
+.change-none { color: var(--text-muted); }
+
+/* Probability Bar in Table Cell */
+.prob-cell-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+}
+.prob-value-text {
+    font-weight: 700;
+    min-width: 45px;
+    text-align: right;
+}
+.prob-bar-bg {
+    width: 80px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.prob-bar-fill {
+    height: 100%;
+    width: 0%;
+    background-color: var(--color-unknown);
+    border-radius: 3px;
+    transition: width 0.8s cubic-bezier(0.1, 0.5, 0.1, 1);
+}
+
+/* ── CHARTS BANNERS & TABS ─────────────────────────── */
+.charts-status-banner {
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.charts-status-banner.bg-warning {
+    background: rgba(255, 123, 0, 0.1);
+    border: 1px solid rgba(255, 123, 0, 0.2);
+    color: #ff9d42;
+}
+.charts-status-banner.bg-success {
+    background: rgba(57, 255, 20, 0.1);
+    border: 1px solid rgba(57, 255, 20, 0.2);
+    color: #8bff6e;
+}
+.banner-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tabs-container {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    gap: 5px;
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 10px 16px;
+    font-family: var(--font-header);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    border-radius: 4px 4px 0 0;
+}
+.tab-btn:hover {
+    color: white;
+    background: rgba(255,255,255,0.02);
+}
+.tab-btn.active {
+    color: var(--f1-red);
+    border-bottom-color: var(--f1-red);
+    background: rgba(255, 24, 1, 0.03);
+}
+
+/* ── IFRAME INTERACTIVE CHARTS ─────────────────────── */
+.iframe-wrapper {
+    width: 100%;
+    height: 520px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.chart-iframe {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    transition: opacity 0.3s ease;
+}
+.chart-iframe.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.chart-placeholder-state {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 20px;
+}
+.placeholder-icon {
+    font-size: 55px;
+    margin-bottom: 18px;
+    opacity: 0.3;
+}
+.chart-placeholder-state h3 {
+    font-family: var(--font-header);
+    font-size: 18px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+.chart-placeholder-state p {
+    font-size: 13px;
+    max-width: 365px;
+    line-height: 1.5;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ── RESPONSIVE DESIGN (BREAKPOINTS) ────────────────── */
+@media (max-width: 1100px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    .control-panel {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    .app-container {
+        padding: 10px 15px;
+    }
+    .app-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+    .server-status {
+        width: 100%;
+        justify-content: center;
+    }
+    .podium-container {
+        gap: 4px;
+        height: 160px;
+    }
+    .podium-driver-name {
+        font-size: 14px;
+    }
+    .podium-driver-team {
+        max-width: 70px;
+    }
+}
