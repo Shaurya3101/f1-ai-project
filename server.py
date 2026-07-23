@@ -5,6 +5,9 @@ import json
 import urllib.parse
 import sys
 import traceback
+import os
+from datetime import datetime, timezone
+from functools import partial
 from pathlib import Path
 
 # Add workspace directory to python path
@@ -13,7 +16,8 @@ sys.path.append(str(Path(__file__).parent))
 from src.predictor import predict_race_winner
 from src.features import get_calendar
 
-PORT = 8000
+ROOT_DIR = Path(__file__).parent
+PORT = int(os.environ.get("PORT", "8000"))
 
 class F1DashboardHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
@@ -141,6 +145,28 @@ class F1DashboardHandler(http.server.SimpleHTTPRequestHandler):
                     "traceback": traceback.format_exc()
                 }).encode("utf-8"))
             return
+        
+        # ── API: Live Backend Status ─────────────────────────
+        elif path == "/api/live_status":
+            try:
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "status": "success",
+                    "server_time_utc": datetime.now(timezone.utc).isoformat(),
+                    "refresh_hint_seconds": 30
+                }).encode("utf-8"))
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "status": "error",
+                    "message": str(e),
+                    "traceback": traceback.format_exc()
+                }).encode("utf-8"))
+            return
 
         # ── Serve Standard Static Files ──────────────────────
         else:
@@ -148,12 +174,12 @@ class F1DashboardHandler(http.server.SimpleHTTPRequestHandler):
 
 # Run the web server
 if __name__ == "__main__":
-    handler = F1DashboardHandler
+    handler = partial(F1DashboardHandler, directory=str(ROOT_DIR))
     
     # Enable socket re-use to prevent "Address already in use" errors during quick restarts
-    socketserver.TCPServer.allow_reuse_address = True
+    socketserver.ThreadingTCPServer.allow_reuse_address = True
     
-    with socketserver.TCPServer(("", PORT), handler) as httpd:
+    with socketserver.ThreadingTCPServer(("", PORT), handler) as httpd:
         print("\n" + "="*50)
         print(f"  F1 AI PREDICTOR SERVER RUNNING")
         print(f"  URL: http://localhost:{PORT}")

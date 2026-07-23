@@ -24,8 +24,8 @@
                 </div>
             </div>
             <div class="server-status">
-                <span class="status-indicator online"></span>
-                <span>AI MODEL ACTIVE (Random Forest v1.0)</span>
+                <span id="server-status-indicator" class="status-indicator online"></span>
+                <span id="server-status-text">LIVE UPDATES ACTIVE</span>
             </div>
         </header>
 
@@ -143,6 +143,16 @@
                                     <span class="podium-driver-team" id="p3-team">Mercedes</span>
                                 </div>
                                 <div class="podium-block">3</div>
+                            </div>
+                        </div>
+
+                        <div class="comparison-graph-container">
+                            <div class="comparison-header">
+                                <h3>Win Probability Comparison</h3>
+                                <p>Baseline grid vs current grid simulation</p>
+                            </div>
+                            <div id="comparison-graph-body" class="comparison-graph-body">
+                                <!-- Bars injected by JS -->
                             </div>
                         </div>
 

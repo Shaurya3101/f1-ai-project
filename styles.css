@@ -645,6 +645,95 @@ body {
 .step-1.glow-mclaren { filter: drop-shadow(0 0 10px rgba(255,128,0,0.25)); }
 .step-1.glow-aston-martin { filter: drop-shadow(0 0 10px rgba(34,153,113,0.25)); }
 
+/* ── WIN PROBABILITY COMPARISON GRAPH ────────────────── */
+.comparison-graph-container {
+    border-top: 1px solid var(--border-color);
+    margin-top: 10px;
+    padding-top: 16px;
+    margin-bottom: 16px;
+}
+.comparison-header h3 {
+    font-family: var(--font-header);
+    font-size: 14px;
+    margin-bottom: 3px;
+}
+.comparison-header p {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+.comparison-graph-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.comparison-row {
+    display: grid;
+    grid-template-columns: 42px 1fr 56px;
+    gap: 10px;
+    align-items: center;
+}
+.comparison-driver {
+    font-family: var(--font-header);
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+.comparison-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.bar-group {
+    display: grid;
+    grid-template-columns: 36px 1fr 44px;
+    gap: 8px;
+    align-items: center;
+}
+.bar-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.bar-track {
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.06);
+}
+.bar-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+.bar-fill.base {
+    background: rgba(255, 255, 255, 0.35);
+}
+.bar-fill.now {
+    background: var(--neon-cyan);
+}
+.bar-value {
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-align: right;
+}
+.comparison-delta {
+    font-size: 11px;
+    font-weight: 700;
+    text-align: right;
+}
+.delta-up {
+    color: var(--neon-green);
+}
+.delta-down {
+    color: var(--f1-red);
+}
+.delta-flat {
+    color: var(--text-muted);
+}
+
 /* ── FORECAST TABLE ────────────────────────────────── */
 .forecast-table-container {
     overflow-x: auto;

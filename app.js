@@ -6,12 +6,18 @@ let currentSeason = 2026;
 let currentRace = null;
 let activeDrivers = []; // Current list of drivers in the editor
 let originalDrivers = []; // Backup of original qualifying order
+let baselinePredictions = []; // Baseline from original qualifying order
 let activeTab = 'race_dashboard';
 let chartsLoadedForCombination = { year: null, round: null }; // Track which combination has charts loaded
+let predictionDebounceTimer = null;
+let raceRefreshTimer = null;
+let liveStatusTimer = null;
 
 // ── DOM ELEMENTS ─────────────────────────────────────
 const seasonSelect = document.getElementById('season-select');
 const raceSelect = document.getElementById('race-select');
+const serverStatusIndicator = document.getElementById('server-status-indicator');
+const serverStatusText = document.getElementById('server-status-text');
 const trackInfo = document.getElementById('track-info');
 const trackFlag = document.getElementById('track-flag');
 const trackName = document.getElementById('track-name');
@@ -28,6 +34,7 @@ const predictionEmpty = document.getElementById('prediction-empty');
 const predictionLoading = document.getElementById('prediction-loading');
 const predictionResultsContent = document.getElementById('prediction-results-content');
 const forecastTableBody = document.getElementById('forecast-table-body');
+const comparisonGraphBody = document.getElementById('comparison-graph-body');
 
 const p1Name = document.getElementById('p1-name');
 const p1Prob = document.getElementById('p1-prob');
@@ -84,6 +91,157 @@ function getTeamColor(team) {
     return defaultColor;
 }
 
+function rebuildRaceOptions(selectedRound = null) {
+    raceSelect.innerHTML = '<option value="" disabled selected>-- Select a Race --</option>';
+    const nextRace = races.find(r => !r.completed);
+
+    races.forEach(race => {
+        const opt = document.createElement('option');
+        opt.value = race.round;
+
+        let suffix = "";
+        if (!race.completed) {
+            suffix = (nextRace && nextRace.round === race.round) ? " (Next Race 🔮)" : " (Upcoming)";
+        } else {
+            suffix = " (Completed)";
+        }
+
+        opt.textContent = `Round ${race.round}: ${race.flag} ${race.name} GP${suffix}`;
+        raceSelect.appendChild(opt);
+    });
+
+    if (selectedRound) {
+        raceSelect.value = String(selectedRound);
+    }
+}
+
+function updateChartsAvailabilityByRace() {
+    if (!currentRace) return;
+
+    if (!currentRace.completed) {
+        generateChartsBtn.setAttribute('disabled', 'true');
+        generateChartsBtn.title = "Analytics charts cannot be generated for future races.";
+        chartPlaceholder.className = 'chart-placeholder-state';
+        chartPlaceholder.innerHTML = `
+            <i class="fa-solid fa-chart-bar placeholder-icon"></i>
+            <h3>Future Race Selected</h3>
+            <p>Interactive telemetry, lap pace, and tyre strategy charts will be available once the race weekend completes.</p>
+        `;
+        chartIframe.classList.add('hidden');
+        chartPlaceholder.classList.remove('hidden');
+    } else {
+        generateChartsBtn.removeAttribute('disabled');
+        generateChartsBtn.title = "Load or generate analytics charts";
+        resetChartPlaceholder();
+    }
+}
+
+function renderComparisonGraph(predictions) {
+    if (!comparisonGraphBody) return;
+    if (!predictions || predictions.length === 0) {
+        comparisonGraphBody.innerHTML = "";
+        return;
+    }
+
+    const baselineMap = {};
+    baselinePredictions.forEach(p => {
+        baselineMap[p.driver] = p.win_prob;
+    });
+
+    const sorted = [...predictions]
+        .sort((a, b) => b.win_prob - a.win_prob)
+        .slice(0, 8);
+
+    comparisonGraphBody.innerHTML = "";
+
+    sorted.forEach(driver => {
+        const baselineProb = baselineMap[driver.driver] ?? 0;
+        const currentProb = driver.win_prob;
+        const delta = +(currentProb - baselineProb).toFixed(1);
+        const deltaClass = delta > 0 ? "delta-up" : (delta < 0 ? "delta-down" : "delta-flat");
+        const deltaText = delta > 0 ? `+${delta}%` : `${delta}%`;
+
+        const row = document.createElement("div");
+        row.className = "comparison-row";
+        row.innerHTML = `
+            <div class="comparison-driver">${driver.driver}</div>
+            <div class="comparison-bars">
+                <div class="bar-group">
+                    <span class="bar-label">Base</span>
+                    <div class="bar-track">
+                        <div class="bar-fill base" style="width:${Math.max(0, Math.min(100, baselineProb))}%;"></div>
+                    </div>
+                    <span class="bar-value">${baselineProb.toFixed(1)}%</span>
+                </div>
+                <div class="bar-group">
+                    <span class="bar-label">Now</span>
+                    <div class="bar-track">
+                        <div class="bar-fill now" style="width:${Math.max(0, Math.min(100, currentProb))}%; background:${getTeamColor(driver.team)};"></div>
+                    </div>
+                    <span class="bar-value">${currentProb.toFixed(1)}%</span>
+                </div>
+            </div>
+            <div class="comparison-delta ${deltaClass}">${deltaText}</div>
+        `;
+        comparisonGraphBody.appendChild(row);
+    });
+}
+
+async function pollLiveStatus() {
+    try {
+        const response = await fetch("/api/live_status");
+        const data = await response.json();
+        if (data.status === "success") {
+            serverStatusIndicator.classList.remove("offline");
+            serverStatusIndicator.classList.add("online");
+            serverStatusText.textContent = "LIVE UPDATES ACTIVE";
+        } else {
+            throw new Error(data.message || "Live status unavailable");
+        }
+    } catch (e) {
+        serverStatusIndicator.classList.remove("online");
+        serverStatusIndicator.classList.add("offline");
+        serverStatusText.textContent = "LIVE UPDATES OFFLINE";
+    }
+}
+
+async function refreshRaceMetadata() {
+    if (!currentSeason) return;
+
+    try {
+        const response = await fetch(`/api/races?year=${currentSeason}`);
+        const latestRaces = await response.json();
+        if (!Array.isArray(latestRaces) || latestRaces.length === 0) return;
+
+        const selectedRound = currentRace ? currentRace.round : parseInt(raceSelect.value);
+        races = latestRaces;
+        rebuildRaceOptions(selectedRound);
+
+        if (selectedRound) {
+            const updatedRace = races.find(r => r.round === selectedRound);
+            if (updatedRace) {
+                currentRace = updatedRace;
+                trackFlag.textContent = currentRace.flag;
+                trackName.textContent = `${currentRace.name} Grand Prix`;
+                trackCircuit.textContent = currentRace.circuit;
+                trackType.textContent = currentRace.type;
+                trackType.className = `meta-value badge-${currentRace.type}`;
+                updateChartsAvailabilityByRace();
+            }
+        }
+    } catch (e) {
+        console.error("Background race refresh failed:", e);
+    }
+}
+
+function queueAutoPrediction() {
+    if (!currentRace || !activeDrivers.length) return;
+    if (predictionDebounceTimer) clearTimeout(predictionDebounceTimer);
+    predictionDebounceTimer = setTimeout(() => {
+        runPrediction();
+    }, 500);
+}
+
 // ── INITIALIZATION ───────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -118,6 +276,13 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         // Load default season
         await loadRacesForSeason(currentSeason);
+        await pollLiveStatus();
+
+        if (raceRefreshTimer) clearInterval(raceRefreshTimer);
+        raceRefreshTimer = setInterval(refreshRaceMetadata, 30000);
+
+        if (liveStatusTimer) clearInterval(liveStatusTimer);
+        liveStatusTimer = setInterval(pollLiveStatus, 30000);
 
     } catch (e) {
         console.error("Error loading initial data:", e);
@@ -136,28 +301,10 @@ async function loadRacesForSeason(season) {
         const response = await fetch(`/api/races?year=${season}`);
         races = await response.json();
         
-        raceSelect.innerHTML = '<option value="" disabled selected>-- Select a Race --</option>';
-        
+        rebuildRaceOptions();
+
         // Find the first uncompleted race (the next race)
         let nextRace = races.find(r => !r.completed);
-        
-        races.forEach(race => {
-            const opt = document.createElement('option');
-            opt.value = race.round;
-            
-            let suffix = "";
-            if (!race.completed) {
-                if (nextRace && nextRace.round === race.round) {
-                    suffix = " (Next Race 🔮)";
-                } else {
-                    suffix = " (Upcoming)";
-                }
-            } else {
-                suffix = " (Completed)";
-            }
-            opt.textContent = `Round ${race.round}: ${race.flag} ${race.name} GP${suffix}`;
-            raceSelect.appendChild(opt);
-        });
         
         // Auto-select the target race
         if (nextRace) {
@@ -183,6 +330,7 @@ async function handleRaceChange(e) {
 
 async function handleRaceSelected(round) {
     currentRace = races.find(r => r.round === round);
+    baselinePredictions = [];
     
     if (!currentRace) return;
 
@@ -200,22 +348,7 @@ async function handleRaceSelected(round) {
     trackInfo.classList.remove('hidden');
 
     // Enable/disable charts button based on race completion status
-    if (!currentRace.completed) {
-        generateChartsBtn.setAttribute('disabled', 'true');
-        generateChartsBtn.title = "Analytics charts cannot be generated for future races.";
-        chartPlaceholder.className = 'chart-placeholder-state';
-        chartPlaceholder.innerHTML = `
-            <i class="fa-solid fa-chart-bar placeholder-icon"></i>
-            <h3>Future Race Selected</h3>
-            <p>Interactive telemetry, lap pace, and tyre strategy charts will be available once the race weekend completes.</p>
-        `;
-        chartIframe.classList.add('hidden');
-        chartPlaceholder.classList.remove('hidden');
-    } else {
-        generateChartsBtn.removeAttribute('disabled');
-        generateChartsBtn.title = "Load or generate analytics charts";
-        resetChartPlaceholder();
-    }
+    updateChartsAvailabilityByRace();
 
     // 2. Fetch original grid order & initial prediction
     loadGridAndPredict(round);
@@ -240,6 +373,7 @@ async function loadGridAndPredict(round) {
             // Sort drivers by grid position
             activeDrivers = [...data.predictions].sort((a, b) => a.grid - b.grid);
             originalDrivers = JSON.parse(JSON.stringify(activeDrivers)); // Deep clone backup
+            baselinePredictions = JSON.parse(JSON.stringify(data.predictions));
             
             renderGridEditor();
             
@@ -320,11 +454,13 @@ function swapDrivers(indexA, indexB) {
     });
     
     renderGridEditor();
+    queueAutoPrediction();
 }
 
 function resetGridOrder() {
     activeDrivers = JSON.parse(JSON.stringify(originalDrivers));
     renderGridEditor();
+    queueAutoPrediction();
 }
 
 // ── RUN AI SIMULATION ────────────────────────────────
@@ -370,6 +506,9 @@ async function runPrediction() {
 // Render the 3D Podium and Forecast Table
 function displayPredictions(predictions) {
     if (!predictions || predictions.length < 3) return;
+    if (!baselinePredictions || baselinePredictions.length === 0) {
+        baselinePredictions = JSON.parse(JSON.stringify(predictions));
+    }
 
     // ── 1. PODIUM RENDER ─────────────────────────────
     const p1 = predictions[0];
@@ -440,6 +579,7 @@ function displayPredictions(predictions) {
     });
 
     predictionResultsContent.classList.remove('hidden');
+    renderComparisonGraph(predictions);
 }
 
 // ── GENERATE & LOAD INTERACTIVE PLOTLY CHARTS ────────

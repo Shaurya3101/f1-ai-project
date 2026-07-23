@@ -1,15 +1,25 @@
-# F1 AI Project
+# F1 AI Predictor Dashboard
 
-Python toolkit for pulling Formula 1 session data with [FastF1](https://github.com/theOehrly/Fast-F1) and building interactive race visualizations with Plotly.
+Interactive Formula 1 dashboard built with Python + FastF1 for data, a custom ML predictor for simulation, and a modern web UI for live comparison and race analytics charts.
 
-## Features
+## What this project does
 
-- Load race, qualifying, or practice sessions by year and Grand Prix
-- Lap times, tyre strategy, position changes, degradation, and team pace charts
-- Combined race dashboard (single HTML report)
-- Optional full-season JSON export for a web dashboard (`src/export_data.py`)
+1. Pulls F1 race/qualifying history from FastF1 (with local cache).
+2. Builds driver/team trend features from historical races.
+3. Trains a Random Forest model to estimate expected finish and win probability.
+4. Lets you edit starting grid positions and compare baseline vs edited outcomes.
+5. Generates Plotly analytics charts (lap pace, strategy, tyre degradation, team pace, dashboard).
 
-## Setup
+## How the app is structured
+
+- `server.py`: single Python web server for APIs + static frontend hosting.
+- `index.html`, `app.js`, `styles.css`: dashboard UI, live updates, and comparison graph.
+- `src/predictor.py`: ML prediction pipeline.
+- `src/features.py`: schedule + feature engineering + cached race results.
+- `src/data_loader.py`: FastF1 session loading and clean lap/results extraction.
+- `src/visualise.py`: Plotly chart generation to `data/charts/*.html`.
+
+## Local setup
 
 ```bash
 python -m venv venv
@@ -18,35 +28,42 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-## Run
+## Run the website
 
 ```bash
-python main.py
+python server.py
 ```
 
-The first run downloads session data (~30 seconds per session). Later runs use the local cache in `data/fastf1_cache/`.
+Then open:
 
-Charts are saved to `data/charts/` as `.html` files — open them in any browser.
+`http://localhost:8000`
 
-## Project structure
+Notes:
+- First-time data pulls can take ~30s per race session.
+- Later runs are much faster due to `data/fastf1_cache/`.
+- Charts are generated dynamically into `data/charts/`.
 
-```
-f1-ai-project/
-├── main.py              # Example: 2024 Bahrain GP charts
-├── src/
-│   ├── data_loader.py   # FastF1 session loading
-│   ├── visualise.py     # Plotly charts
-│   └── export_data.py   # Full-season JSON export
-├── data/
-│   ├── fastf1_cache/    # Auto-created (gitignored)
-│   └── charts/          # Generated HTML (gitignored)
-└── requirements.txt
-```
+## Real-time behavior in UI
+
+- Live backend heartbeat (`/api/live_status`) updates the status indicator.
+- Race metadata refreshes every 30 seconds.
+- Grid order edits auto-trigger simulation updates (debounced).
+- Comparison graph shows **Baseline vs Current** win probabilities.
+
+## Deploy (Render example)
+
+1. Push this repo to GitHub.
+2. In Render, create a **Web Service** from this repo.
+3. Set:
+   - **Build command:** `pip install -r requirements.txt`
+   - **Start command:** `python server.py`
+4. Render will provide `PORT`; `server.py` reads it automatically.
+5. Open the generated Render URL to access the live website.
 
 ## Requirements
 
 - Python 3.11+
-- Internet on first run (FastF1 API)
+- Internet access for FastF1 data fetches
 
 ## License
 
