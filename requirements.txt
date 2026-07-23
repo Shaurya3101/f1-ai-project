@@ -5,3 +5,4 @@ plotly>=6.6.0
 rich>=14.3.0
 matplotlib>=3.10.0
 requests>=2.32.0
+scikit-learn>=1.6.0
