@@ -734,6 +734,95 @@ body {
     color: var(--text-muted);
 }
 
+/* ── INTERACTIVE INSIGHTS ───────────────────────────── */
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.insight-card {
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.015);
+    border-radius: 10px;
+    padding: 12px;
+}
+.insight-title {
+    font-family: var(--font-header);
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+.quick-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+.stat-pill {
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(0, 0, 0, 0.28);
+    border-radius: 8px;
+    padding: 8px;
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.stat-pill-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-muted);
+}
+.stat-pill-value {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.driver-inspector-card {
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.015);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 16px;
+}
+.driver-inspector-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.driver-detail-select {
+    max-width: 320px;
+    margin: 0;
+    padding: 8px 12px;
+    font-size: 12px;
+}
+.driver-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+.driver-stat-item {
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(0, 0, 0, 0.28);
+    border-radius: 8px;
+    padding: 8px;
+}
+.driver-stat-label {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-muted);
+}
+.driver-stat-value {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
 /* ── FORECAST TABLE ────────────────────────────────── */
 .forecast-table-container {
     overflow-x: auto;
@@ -941,6 +1030,12 @@ body {
     .control-panel {
         max-width: 100%;
     }
+    .insights-grid {
+        grid-template-columns: 1fr;
+    }
+    .driver-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 600px) {
@@ -965,5 +1060,17 @@ body {
     }
     .podium-driver-team {
         max-width: 70px;
+    }
+    .quick-stats-grid,
+    .driver-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    .driver-inspector-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .driver-detail-select {
+        max-width: 100%;
+        width: 100%;
     }
 }

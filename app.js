@@ -6,12 +6,16 @@ let currentSeason = 2026;
 let currentRace = null;
 let activeDrivers = []; // Current list of drivers in the editor
 let originalDrivers = []; // Backup of original qualifying order
+let currentPredictions = [];
 let baselinePredictions = []; // Baseline from original qualifying order
 let activeTab = 'race_dashboard';
 let chartsLoadedForCombination = { year: null, round: null }; // Track which combination has charts loaded
 let predictionDebounceTimer = null;
 let raceRefreshTimer = null;
 let liveStatusTimer = null;
+let selectedDriverCode = null;
+let driverWinPieChart = null;
+let teamWinPieChart = null;
 
 // ── DOM ELEMENTS ─────────────────────────────────────
 const seasonSelect = document.getElementById('season-select');
@@ -35,6 +39,11 @@ const predictionLoading = document.getElementById('prediction-loading');
 const predictionResultsContent = document.getElementById('prediction-results-content');
 const forecastTableBody = document.getElementById('forecast-table-body');
 const comparisonGraphBody = document.getElementById('comparison-graph-body');
+const quickStatsGrid = document.getElementById('quick-stats-grid');
+const driverDetailSelect = document.getElementById('driver-detail-select');
+const driverStatsGrid = document.getElementById('driver-stats-grid');
+const driverWinPieCanvas = document.getElementById('driver-win-pie');
+const teamWinPieCanvas = document.getElementById('team-win-pie');
 
 const p1Name = document.getElementById('p1-name');
 const p1Prob = document.getElementById('p1-prob');
@@ -89,6 +98,176 @@ function getTeamColor(team) {
     if (t.includes("sauber") || t.includes("kick")) return "#52E252";
     if (t.includes("haas")) return "#B6BABD";
     return defaultColor;
+}
+
+function destroyInsightCharts() {
+    if (driverWinPieChart) {
+        driverWinPieChart.destroy();
+        driverWinPieChart = null;
+    }
+    if (teamWinPieChart) {
+        teamWinPieChart.destroy();
+        teamWinPieChart = null;
+    }
+}
+
+function formatStatValue(value, suffix = "") {
+    if (typeof value === "number") {
+        return Number.isInteger(value) ? `${value}${suffix}` : `${value.toFixed(1)}${suffix}`;
+    }
+    return `${value}${suffix}`;
+}
+
+function renderQuickStats(predictions) {
+    if (!quickStatsGrid || !predictions?.length) return;
+
+    const favorite = predictions[0];
+    const avgGrid = predictions.reduce((sum, d) => sum + d.grid, 0) / predictions.length;
+    const avgPred = predictions.reduce((sum, d) => sum + d.predicted_pos, 0) / predictions.length;
+    const gridUpsets = predictions.filter(d => d.grid - d.rank >= 3).length;
+
+    const stats = [
+        { label: "Favorite", value: `${favorite.driver} (${favorite.win_prob}%)` },
+        { label: "Top Team", value: favorite.team },
+        { label: "Driver Count", value: predictions.length },
+        { label: "Avg Start Grid", value: avgGrid.toFixed(1) },
+        { label: "Avg Pred Finish", value: avgPred.toFixed(1) },
+        { label: "Big Movers (3+)", value: gridUpsets }
+    ];
+
+    quickStatsGrid.innerHTML = "";
+    stats.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "stat-pill";
+        card.innerHTML = `
+            <span class="stat-pill-label">${item.label}</span>
+            <span class="stat-pill-value">${item.value}</span>
+        `;
+        quickStatsGrid.appendChild(card);
+    });
+}
+
+function renderPieInsights(predictions) {
+    if (typeof Chart === "undefined" || !driverWinPieCanvas || !teamWinPieCanvas || !predictions?.length) return;
+    destroyInsightCharts();
+
+    const topDrivers = [...predictions].slice(0, 10);
+    driverWinPieChart = new Chart(driverWinPieCanvas, {
+        type: "pie",
+        data: {
+            labels: topDrivers.map(d => d.driver),
+            datasets: [{
+                data: topDrivers.map(d => d.win_prob),
+                backgroundColor: topDrivers.map(d => getTeamColor(d.team)),
+                borderColor: "#101018",
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: "bottom", labels: { color: "#d7d9e4" } }
+            }
+        }
+    });
+
+    const teamMap = {};
+    predictions.forEach(d => {
+        if (!teamMap[d.team]) teamMap[d.team] = 0;
+        teamMap[d.team] += d.win_prob;
+    });
+
+    const teamRows = Object.entries(teamMap)
+        .map(([team, prob]) => ({ team, prob: +prob.toFixed(2) }))
+        .sort((a, b) => b.prob - a.prob);
+
+    teamWinPieChart = new Chart(teamWinPieCanvas, {
+        type: "doughnut",
+        data: {
+            labels: teamRows.map(row => row.team),
+            datasets: [{
+                data: teamRows.map(row => row.prob),
+                backgroundColor: teamRows.map(row => getTeamColor(row.team)),
+                borderColor: "#101018",
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: "58%",
+            plugins: {
+                legend: { position: "bottom", labels: { color: "#d7d9e4" } }
+            }
+        }
+    });
+}
+
+function renderDriverStats(predictions) {
+    if (!driverStatsGrid || !predictions?.length) return;
+
+    const selected = predictions.find(d => d.driver === selectedDriverCode) || predictions[0];
+    selectedDriverCode = selected.driver;
+
+    const stats = [
+        ["Driver", `${selected.fullName} (${selected.driver})`],
+        ["Team", selected.team],
+        ["Starting Grid", `P${selected.grid}`],
+        ["Predicted Finish", `P${selected.predicted_pos}`],
+        ["Current Simulation Rank", `#${selected.rank}`],
+        ["Win Probability", `${selected.win_prob}%`],
+        ["Grid vs Rank Delta", `${selected.grid - selected.rank}`],
+        ["Recent Avg Finish", formatStatValue(selected.recent_avg_finish)],
+        ["Recent Avg Grid", formatStatValue(selected.recent_avg_grid)],
+        ["Driver Cumulative Points", formatStatValue(selected.cum_points)],
+        ["Driver Cumulative Wins", formatStatValue(selected.cum_wins)],
+        ["Team Cumulative Points", formatStatValue(selected.team_cum_points)],
+        ["Team Recent Avg Finish", formatStatValue(selected.team_recent_avg_finish)],
+        ["Circuit Type", selected.circuit_type],
+        ["Circuit Code", formatStatValue(selected.circuit_type_code)]
+    ];
+
+    driverStatsGrid.innerHTML = "";
+    stats.forEach(([label, value]) => {
+        const item = document.createElement("div");
+        item.className = "driver-stat-item";
+        item.innerHTML = `
+            <span class="driver-stat-label">${label}</span>
+            <span class="driver-stat-value">${value}</span>
+        `;
+        driverStatsGrid.appendChild(item);
+    });
+}
+
+function renderDriverSelector(predictions) {
+    if (!driverDetailSelect || !predictions?.length) return;
+
+    const existing = new Set(predictions.map(d => d.driver));
+    if (!selectedDriverCode || !existing.has(selectedDriverCode)) {
+        selectedDriverCode = predictions[0].driver;
+    }
+
+    driverDetailSelect.innerHTML = "";
+    predictions.forEach(d => {
+        const option = document.createElement("option");
+        option.value = d.driver;
+        option.textContent = `${d.driver} - ${d.fullName}`;
+        if (d.driver === selectedDriverCode) option.selected = true;
+        driverDetailSelect.appendChild(option);
+    });
+}
+
+function renderInteractiveInsights(predictions) {
+    renderQuickStats(predictions);
+    renderPieInsights(predictions);
+    renderDriverSelector(predictions);
+    renderDriverStats(predictions);
+}
+
+function clearInteractiveInsights() {
+    destroyInsightCharts();
+    if (quickStatsGrid) quickStatsGrid.innerHTML = "";
+    if (driverStatsGrid) driverStatsGrid.innerHTML = "";
+    if (driverDetailSelect) driverDetailSelect.innerHTML = "";
 }
 
 function rebuildRaceOptions(selectedRound = null) {
@@ -264,6 +443,13 @@ window.addEventListener('DOMContentLoaded', async () => {
         // Setup Chart generation
         generateChartsBtn.addEventListener('click', generatePlotlyCharts);
 
+        if (driverDetailSelect) {
+            driverDetailSelect.addEventListener('change', (e) => {
+                selectedDriverCode = e.target.value;
+                renderDriverStats(currentPredictions);
+            });
+        }
+
         // Setup Tab listeners
         tabButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -331,6 +517,9 @@ async function handleRaceChange(e) {
 async function handleRaceSelected(round) {
     currentRace = races.find(r => r.round === round);
     baselinePredictions = [];
+    currentPredictions = [];
+    selectedDriverCode = null;
+    clearInteractiveInsights();
     
     if (!currentRace) return;
 
@@ -364,6 +553,7 @@ async function loadGridAndPredict(round) {
     predictionResultsContent.classList.add('hidden');
     predictionLoading.classList.add('hidden');
     predictionEmpty.classList.remove('hidden');
+    clearInteractiveInsights();
     
     try {
         const response = await fetch(`/api/predict?year=${currentSeason}&round=${round}`);
@@ -374,6 +564,7 @@ async function loadGridAndPredict(round) {
             activeDrivers = [...data.predictions].sort((a, b) => a.grid - b.grid);
             originalDrivers = JSON.parse(JSON.stringify(activeDrivers)); // Deep clone backup
             baselinePredictions = JSON.parse(JSON.stringify(data.predictions));
+            currentPredictions = [...data.predictions];
             
             renderGridEditor();
             
@@ -509,6 +700,7 @@ function displayPredictions(predictions) {
     if (!baselinePredictions || baselinePredictions.length === 0) {
         baselinePredictions = JSON.parse(JSON.stringify(predictions));
     }
+    currentPredictions = [...predictions];
 
     // ── 1. PODIUM RENDER ─────────────────────────────
     const p1 = predictions[0];
@@ -580,6 +772,7 @@ function displayPredictions(predictions) {
 
     predictionResultsContent.classList.remove('hidden');
     renderComparisonGraph(predictions);
+    renderInteractiveInsights(predictions);
 }
 
 // ── GENERATE & LOAD INTERACTIVE PLOTLY CHARTS ────────

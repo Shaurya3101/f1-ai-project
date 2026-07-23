@@ -8,7 +8,8 @@ Interactive Formula 1 dashboard built with Python + FastF1 for data, a custom ML
 2. Builds driver/team trend features from historical races.
 3. Trains a Random Forest model to estimate expected finish and win probability.
 4. Lets you edit starting grid positions and compare baseline vs edited outcomes.
-5. Generates Plotly analytics charts (lap pace, strategy, tyre degradation, team pace, dashboard).
+5. Shows interactive insights: driver/team win-share pie charts and a per-driver stats explorer.
+6. Generates Plotly analytics charts (lap pace, strategy, tyre degradation, team pace, dashboard).
 
 ## How the app is structured
 

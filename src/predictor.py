@@ -210,8 +210,13 @@ def predict_race_winner(
             "predicted_pos": round(float(r["predicted_position"]), 1),
             "win_prob": round(float(r["win_probability"]), 1),
             "recent_avg_finish": round(float(r["driver_recent_avg_finish"]), 1),
+            "recent_avg_grid": round(float(r["driver_recent_avg_grid"]), 1),
             "cum_points": int(r["driver_cum_points"]),
-            "cum_wins": int(r["driver_cum_wins"])
+            "cum_wins": int(r["driver_cum_wins"]),
+            "team_cum_points": int(r["team_cum_points"]),
+            "team_recent_avg_finish": round(float(r["team_recent_avg_finish"]), 1),
+            "circuit_type": str(r["circuit_type"]),
+            "circuit_type_code": int(r["circuit_type_code"])
         })
         
     return predictions

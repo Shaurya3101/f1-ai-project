@@ -156,6 +156,33 @@
                             </div>
                         </div>
 
+                        <div class="insights-grid">
+                            <div class="insight-card">
+                                <h3 class="insight-title">Quick Stats</h3>
+                                <div id="quick-stats-grid" class="quick-stats-grid">
+                                    <!-- Stats injected by JS -->
+                                </div>
+                            </div>
+                            <div class="insight-card">
+                                <h3 class="insight-title">Win Probability by Driver</h3>
+                                <canvas id="driver-win-pie" height="220"></canvas>
+                            </div>
+                            <div class="insight-card">
+                                <h3 class="insight-title">Team Win Share</h3>
+                                <canvas id="team-win-pie" height="220"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="driver-inspector-card">
+                            <div class="driver-inspector-header">
+                                <h3 class="insight-title">Driver Stats Explorer</h3>
+                                <select id="driver-detail-select" class="custom-select driver-detail-select"></select>
+                            </div>
+                            <div id="driver-stats-grid" class="driver-stats-grid">
+                                <!-- Driver stats injected by JS -->
+                            </div>
+                        </div>
+
                         <!-- Forecast Table -->
                         <div class="forecast-table-container">
                             <table class="forecast-table">
@@ -217,6 +244,7 @@
         </main>
     </div>
     
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
